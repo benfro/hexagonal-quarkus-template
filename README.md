@@ -47,6 +47,8 @@ curl localhost:8080/orders/<id>
 curl -X POST localhost:8080/orders/<id>/cancel
 ```
 
+OpenAPI document at `GET /q/openapi`; Swagger UI at `/q/swagger-ui` (dev/test only by default).
+
 Production: `java -jar bootstrap/target/quarkus-app/quarkus-run.jar` with `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` set.
 
 ## Design decisions worth knowing
@@ -83,4 +85,3 @@ Production: `java -jar bootstrap/target/quarkus-app/quarkus-run.jar` with `DB_UR
 - Optimistic locking: add `version` to `Order` (and `@Version` on the entity) so concurrent updates fail cleanly.
 - An outbound messaging adapter (`OrderEventPublisher` port + `adapter-out-messaging` with Kafka/AMQP),
   ideally with an outbox table.
-- OpenAPI: add `quarkus-smallrye-openapi` to `adapter-in-rest`.
