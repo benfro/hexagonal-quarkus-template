@@ -24,8 +24,10 @@ class OrderRepositoryAdapter implements OrderRepository {
     }
 
     @Override
-    public void save(Order order) {
+    public OrderId save(Order order) {
         // merge = insert or update. Lines are replaced as a whole, matching aggregate semantics.
-        jpa.getEntityManager().merge(mapper.toEntity(order));
+        // The generated id lands on the entity merge() returns, not the one passed in.
+        OrderEntity merged = jpa.getEntityManager().merge(mapper.toEntity(order));
+        return mapper.toOrderId(merged.getId());
     }
 }

@@ -30,21 +30,27 @@ public class Order {
     /**
      * Rebuilds an existing aggregate, e.g. from the database. Creation rules are not re-run.
      * Exposed as {@code Order.reconstitute()...build()}; MapStruct picks this builder up automatically.
+     * {@code id} is null here only for an order that hasn't been assigned one by the database yet
+     * (see {@link #create}) - every order loaded back from storage has one.
      */
     @Builder(builderMethodName = "reconstitute")
     private Order(OrderId id, String customerId, List<OrderLine> lines, OrderStatus status, Instant createdAt) {
-        this.id = Objects.requireNonNull(id, "id");
+        this.id = id;
         this.customerId = Objects.requireNonNull(customerId, "customerId");
         this.lines = new ArrayList<>(lines == null ? List.of() : lines);
         this.status = Objects.requireNonNull(status, "status");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt");
     }
 
+    /**
+     * The id is assigned by the database on save (see {@code OrderRepository.save}), so a freshly
+     * created order has none yet.
+     */
     public static Order create(String customerId, Instant now) {
         if (customerId == null || customerId.isBlank()) {
             throw new DomainException("customerId is required");
         }
-        return new Order(OrderId.newId(), customerId, List.of(), OrderStatus.DRAFT, now);
+        return new Order(null, customerId, List.of(), OrderStatus.DRAFT, now);
     }
 
     public void addLine(OrderLine line) {

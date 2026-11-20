@@ -30,7 +30,6 @@ class PlaceOrderService implements PlaceOrderUseCase {
         command.lines().forEach(line ->
                 order.addLine(new OrderLine(line.productId(), line.quantity(), line.unitPrice())));
         order.place();
-        orders.save(order);
-        return order.getId();
+        return orders.save(order);
     }
 }

@@ -12,5 +12,9 @@ public interface OrderRepository {
 
     Optional<Order> findById(OrderId id);
 
-    void save(Order order);
+    /**
+     * Returns the id to use going forward: the database assigns one on first save
+     * (see {@link Order#create}), and returns the existing one on update.
+     */
+    OrderId save(Order order);
 }

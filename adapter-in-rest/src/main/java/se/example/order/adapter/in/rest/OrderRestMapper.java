@@ -8,7 +8,6 @@ import se.example.order.domain.model.Order;
 import se.example.order.domain.model.OrderId;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 /**
  * DTO <-> command/domain mapping. The generated implementation is an @ApplicationScoped bean.
@@ -29,7 +28,7 @@ interface OrderRestMapper {
         return money == null ? null : money.amount();
     }
 
-    default UUID toUuid(OrderId id) {
+    default Long toLong(OrderId id) {
         return id == null ? null : id.value();
     }
 }

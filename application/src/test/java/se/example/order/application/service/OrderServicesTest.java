@@ -59,7 +59,7 @@ class OrderServicesTest {
 
     @Test
     void unknown_order_is_reported() {
-        assertThrows(OrderNotFoundException.class, () -> getOrder.getOrder(OrderId.newId()));
+        assertThrows(OrderNotFoundException.class, () -> getOrder.getOrder(OrderId.of(999L)));
     }
 
     private static PlaceOrderCommand command(String productId, int quantity, String price) {

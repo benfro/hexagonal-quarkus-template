@@ -7,7 +7,6 @@ import se.example.order.domain.model.Order;
 import se.example.order.domain.model.OrderId;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 /**
  * Domain <-> JPA mapping.
@@ -25,11 +24,11 @@ interface OrderEntityMapper {
 
     Order toDomain(OrderEntity entity);
 
-    default UUID toUuid(OrderId id) {
+    default Long toLong(OrderId id) {
         return id == null ? null : id.value();
     }
 
-    default OrderId toOrderId(UUID value) {
+    default OrderId toOrderId(Long value) {
         return value == null ? null : new OrderId(value);
     }
 

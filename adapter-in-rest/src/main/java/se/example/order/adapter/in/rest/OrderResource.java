@@ -20,7 +20,6 @@ import se.example.order.application.port.in.PlaceOrderUseCase;
 import se.example.order.domain.model.OrderId;
 
 import java.net.URI;
-import java.util.UUID;
 
 /**
  * Thin: map the request, call the port, map the result. No business logic here.
@@ -50,7 +49,7 @@ public class OrderResource {
     @Operation(summary = "Get an order by id")
     @APIResponse(responseCode = "200", description = "Order found")
     @APIResponse(responseCode = "404", description = "No order with this id")
-    public OrderResponse get(@PathParam("id") UUID id) {
+    public OrderResponse get(@PathParam("id") Long id) {
         return mapper.toResponse(getOrder.getOrder(new OrderId(id)));
     }
 
@@ -59,7 +58,7 @@ public class OrderResource {
     @Operation(summary = "Cancel an order")
     @APIResponse(responseCode = "204", description = "Order cancelled")
     @APIResponse(responseCode = "404", description = "No order with this id")
-    public Response cancel(@PathParam("id") UUID id) {
+    public Response cancel(@PathParam("id") Long id) {
         cancelOrder.cancelOrder(new OrderId(id));
         return Response.noContent().build();
     }

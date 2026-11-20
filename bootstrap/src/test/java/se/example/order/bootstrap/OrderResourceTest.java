@@ -32,7 +32,7 @@ class OrderResourceTest {
 
     @Test
     void post_returns_201_with_location() {
-        OrderId id = OrderId.newId();
+        OrderId id = OrderId.of(1L);
         when(placeOrder.placeOrder(any())).thenReturn(id);
 
         given().contentType(ContentType.JSON)
@@ -58,7 +58,7 @@ class OrderResourceTest {
 
     @Test
     void unknown_order_gives_404() {
-        OrderId id = OrderId.newId();
+        OrderId id = OrderId.of(2L);
         when(getOrder.getOrder(any())).thenThrow(new OrderNotFoundException(id));
 
         given().when().get("/orders/" + id).then().statusCode(404);
@@ -66,7 +66,7 @@ class OrderResourceTest {
 
     @Test
     void domain_conflict_gives_409() {
-        OrderId id = OrderId.newId();
+        OrderId id = OrderId.of(3L);
         when(placeOrder.placeOrder(any())).thenThrow(new OrderNotModifiableException(id, OrderStatus.PLACED));
 
         given().contentType(ContentType.JSON)
