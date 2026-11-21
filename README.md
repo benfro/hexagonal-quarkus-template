@@ -13,6 +13,36 @@ bootstrap/                Quarkus plugin, application.properties, producers (Clo
 Dependencies point inward: `bootstrap -> adapters -> application -> domain`. Maven enforces the module
 direction; `ArchitectureTest` enforces the rest (no JPA or Quarkus in the core, adapters independent of each other).
 
+## Architecture, at helicopter level: ports and adapters
+
+This is an implementation of **Ports and Adapters** (also called **Hexagonal Architecture**), the pattern
+behind what Robert C. Martin popularized as **Clean Architecture**. The idea in one sentence: business rules
+should not know that a framework, database, or network protocol exists.
+
+- **Domain + application are the "inside."** They contain the business rules (`Order`, its invariants, the
+  use cases that operate on it) and nothing else — no Quarkus, no JPA, no JAX-RS. They don't know or care
+  whether they're being driven by a REST call, a message queue, or a test.
+- **A port is an interface owned by the inside**, describing a capability it needs or offers, without saying
+  how. `port/in` (e.g. `PlaceOrderUseCase`) is "what the outside can ask the inside to do." `port/out` (e.g.
+  `OrderRepository`) is "what the inside needs from the outside," like persistence.
+- **An adapter is a concrete implementation living on the outside** that plugs into a port.
+  `adapter-in-rest` adapts incoming HTTP requests into calls on a `port/in` interface. `adapter-out-persistence`
+  adapts a `port/out` interface into actual SQL/JPA calls. Adapters depend on the ports; the ports (and
+  everything inside them) never depend on the adapters.
+- **Why bother:** you can swap REST for gRPC, or Postgres for an in-memory fake (see `OrderServicesTest`'s
+  `InMemoryOrderRepository`), by writing a new adapter — the domain and use cases don't change, and don't
+  even need recompiling in a different module.
+
+Background reading, roughly in the order it helps to read them:
+
+- Alistair Cockburn, [*Hexagonal Architecture*](https://alistair.cockburn.us/hexagonal-architecture/) — the
+  original "ports and adapters" write-up that gives the pattern its name.
+- Robert C. Martin, [*The Clean Architecture*](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) —
+  the "dependencies only point inward, towards business rules" framing most people mean by "clean architecture."
+- Quarkus's own [*Getting Started*](https://quarkus.io/guides/getting-started) guide is useful background
+  for how the framework expects CDI beans and resources to be wired, which is exactly what this skeleton
+  keeps at arm's length from `domain`/`application`.
+
 ## Using this as a template
 
 This repo is meant to be cloned and renamed, not forked as-is. Two steps:
@@ -50,6 +80,33 @@ curl -X POST localhost:8080/orders/<id>/cancel
 OpenAPI document at `GET /q/openapi`; Swagger UI at `/q/swagger-ui` (dev/test only by default).
 
 Production: `java -jar bootstrap/target/quarkus-app/quarkus-run.jar` with `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` set.
+
+## Adding a new REST endpoint
+
+Working outside-in through the layers for a new endpoint:
+
+1. **Port + use case** (`application`): add or extend a `port/in` interface (e.g. `PlaceOrderUseCase`) and
+   implement it as a package-private service under `service/`, annotated `@Transactional` if it writes.
+2. **REST resource** (`adapter-in-rest`): add a method to `OrderResource` (or a new JAX-RS resource class),
+   plus request/response DTOs and a MapStruct mapper method, following the existing `OrderResource` as the
+   template. Map any new domain exception in `OrderExceptionMappers`.
+3. **Wire it up and try it**: `mvn -f bootstrap/pom.xml quarkus:dev`, then hit it with `curl` or via
+   Swagger UI at `/q/swagger-ui`.
+
+If you haven't worked with Quarkus before, these guides cover the mechanics above in more depth:
+
+- [Quarkus Getting Started](https://quarkus.io/guides/getting-started) — project layout, dev mode, the
+  overall CDI-based programming model.
+- [Writing JSON REST Services](https://quarkus.io/guides/rest-json) — JAX-RS resources that consume/produce
+  JSON, which is what `OrderResource` does.
+- [Quarkus REST](https://quarkus.io/guides/rest) — the full reference for request/response handling, path
+  and query parameters, content negotiation, etc.
+- [Validation](https://quarkus.io/guides/validation) — Bean Validation (`@NotNull`, `@Valid`, ...) on
+  request DTOs.
+- [OpenAPI and Swagger UI](https://quarkus.io/guides/openapi-swaggerui) — how the `/q/openapi` document and
+  `/q/swagger-ui` endpoint (already enabled in this project) are generated and customized.
+- [Getting Started Testing](https://quarkus.io/guides/getting-started-testing) — `@QuarkusTest`,
+  `@InjectMock`, and `RestAssured`, as used in `OrderResourceTest` and `OrderApiTest`.
 
 ## Design decisions worth knowing
 
